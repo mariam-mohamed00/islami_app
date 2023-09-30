@@ -15,5 +15,8 @@
 "language" : "Language",
 "quran_radio" : "Holy Quran Radio",
 "number_of_praises" : "Numbers Of Praises",
-"tasbeh" : "Subhan Allah"
+"subhan_allah" : "Subhan Allah",
+"allah_akbar" : "Allah Akbar",
+"elhamdullah" : "ElHamdullah",
+"la_ellah_ela_allah" : "La Elah Ela Allah"
 }
