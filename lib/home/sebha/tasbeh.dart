@@ -13,10 +13,26 @@ class _TasbehTabState extends State<TasbehTab> {
   double turns = 0.0;
 
   void _changeRotation() {
-    setState(() => turns += 1.0 / 30.0);
+    setState(() => turns += 1 / 33.0);
   }
 
   int numberOfPraises = 0;
+
+  List<String> tasbehatEn = [
+    'Subhan Allah',
+    'ElHamdullah',
+    'Allah Akbar',
+    'La elah ela allah',
+    'La hawl wla kewt ela bellah'
+  ];
+  List<String> tasbehatAr = [
+    'سبحان الله',
+    'الحمدلله',
+    'الله اكبر',
+    'لا اله الا الله',
+    'لا حول ولا قوة الا بالله'
+  ];
+  int index = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +66,25 @@ class _TasbehTabState extends State<TasbehTab> {
                                 'assets/images/head_of_seb7a.png',
                               ),
                             )),
-              InkWell(
+              GestureDetector(
                 onTap: () {
                   _changeRotation();
+
                   numberOfPraises++;
+
+                  if (numberOfPraises % 33 == 0) {
+                    index++;
+                  }
+                  if (provider.appLanguage == 'en') {
+                    if (index == tasbehatEn.length) {
+                      index = 0;
+                    }
+                  } else if (provider.appLanguage == 'ar') {
+                    if (index == tasbehatAr.length) {
+                      index = 0;
+                    }
+                  }
+                  setState(() {});
                 },
                 child: AnimatedRotation(
                   turns: turns,
@@ -114,7 +145,10 @@ class _TasbehTabState extends State<TasbehTab> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(10),
-              child: Text(AppLocalizations.of(context)!.tasbeh,
+              child: Text(
+                  provider.appLanguage == 'en'
+                      ? tasbehatEn[index]
+                      : tasbehatAr[index],
                   style: provider.appTheme == ThemeMode.dark
                       ? Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,

@@ -6,32 +6,24 @@ import 'package:islamii/home/quran/sura_details_screen.dart';
 import 'package:islamii/my_theme.dart';
 import 'package:islamii/providers/app_config_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(
     ChangeNotifierProvider(
-        create: (context) => AppConfigProvider(), child: MyApp()),
+      create: (context) => AppConfigProvider(),
+      child: MyApp(),
+    ),
   );
 }
 
-class MyApp extends StatefulWidget {
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  // String TthemeData = '';
-  // String Llocale = '';
-
-  @override
-  void initState() {
-    super.initState();
-    // getData();
-  }
+class MyApp extends StatelessWidget {
+  late AppConfigProvider provider;
 
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<AppConfigProvider>(context);
+    provider = Provider.of<AppConfigProvider>(context);
+    initSharedPref();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: HomeScreen.routeName,
@@ -49,13 +41,18 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-// getData() async {
-//   var provider = Provider.of<AppConfigProvider>(context);
+  Future<void> initSharedPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    var language = prefs.getString('language');
+    if (language != null) {
+      provider.changeLanguage(language);
+    }
 
-//   SharedPreferences _pref = await SharedPreferences.getInstance();
-//   setState(() {
-//     TthemeData = _pref.getString('${provider.appTheme}')!;
-//     Llocale = _pref.getString('${provider.appLanguage}')!;
-//   });
-// }
+    var isDark = prefs.getBool('isDark');
+    if (isDark == true) {
+      provider.changeTheme(ThemeMode.dark);
+    } else if (isDark == false) {
+      provider.changeTheme(ThemeMode.light);
+    }
+  }
 }
