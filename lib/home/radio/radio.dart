@@ -1,55 +1,72 @@
+import 'dart:convert';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:islamii/my_theme.dart';
-import 'package:islamii/providers/app_config_provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:islamii/home/radio/RadiosResponse.dart';
+import 'package:islamii/home/radio/radio_item.dart';
 import 'package:provider/provider.dart';
 
-class RadioTab extends StatelessWidget {
+import '../../my_theme.dart';
+import '../../providers/app_config_provider.dart';
+
+class RadioTab extends StatefulWidget {
+  @override
+  State<RadioTab> createState() => _RadioTabState();
+}
+
+class _RadioTabState extends State<RadioTab> {
+  final audioPlayer = AudioPlayer();
+
   @override
   Widget build(BuildContext context) {
     var provider = Provider.of<AppConfigProvider>(context);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Image.asset('assets/images/radio_image.png'),
-        Text(
-          AppLocalizations.of(context)!.quran_radio,
-          style: provider.appTheme == ThemeMode.dark
-              ? Theme.of(context)
-                  .textTheme
-                  .titleMedium!
-                  .copyWith(color: MyTheme.whiteColor)
-              : Theme.of(context).textTheme.titleMedium,
-        ),
-        // Image.asset('assets/images/icons_radio.png',
-        //   ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Icon(
-              Icons.skip_previous,
-              size: 40,
+
+    return FutureBuilder(
+      future: getRadios(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          var radios = snapshot.data?.radios ?? [];
+          return Column(
+            children: [
+              Expanded(
+                  flex: 2, child: Image.asset('assets/images/radio_image.png')),
+              Expanded(
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: PageScrollPhysics(),
+                  itemCount: radios.length,
+                  itemBuilder: (context, index) => RadioItem(
+                    radios: radios[index],
+                    audioPlayer: audioPlayer,
+                  ),
+                ),
+              )
+            ],
+          );
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Something went wrong.'));
+        } else {
+          return Center(
+            child: CircularProgressIndicator(
               color: provider.appTheme == ThemeMode.dark
                   ? MyTheme.yellowColor
                   : MyTheme.primaryLight,
             ),
-            Icon(
-              Icons.play_arrow,
-              size: 55,
-              color: provider.appTheme == ThemeMode.dark
-                  ? MyTheme.yellowColor
-                  : MyTheme.primaryLight,
-            ),
-            Icon(
-              Icons.skip_next,
-              size: 40,
-              color: provider.appTheme == ThemeMode.dark
-                  ? MyTheme.yellowColor
-                  : MyTheme.primaryLight,
-            )
-          ],
-        ),
-      ],
+          );
+        }
+      },
     );
+  }
+
+  Future<RadiosResponse> getRadios() async {
+    var uri = Uri.parse('https://mp3quran.net/api/v3/radios');
+    var response = await http.get(uri);
+    if (response.statusCode == 200) {
+      var json = jsonDecode(response.body);
+      return RadiosResponse.fromJson(json);
+    } else {
+      throw Exception('Failed to load radios');
+    }
   }
 }
